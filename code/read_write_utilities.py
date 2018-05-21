@@ -3,23 +3,6 @@ import os
 import numpy as np
 
 
-def read_huawei_data(filename):
-    f = open(filename, 'rb')
-    process_tree_edge_dict = pickle.load(f)
-    print('\ntree')
-    print(process_tree_edge_dict)
-    process_seq = pickle.load(f)
-    print('\nprocess sequence')
-    print(process_seq)
-    rip_seq = pickle.load(f)
-    print('\nrip')
-    print(rip_seq)
-    api_seq = pickle.load(f)
-    print('\napi')
-    print(api_seq)
-    f.close()
-
-
 def count_edges_my_data(folderpath, nr):
     cnt = 0
     V = set()
