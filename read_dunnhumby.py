@@ -107,10 +107,3 @@ def to_graphs(filename, outputname):
     E, cust_map, prod_map = read_data(filename)
     write_to_graphs(E, cust_map, prod_map, outputname)
     
-    
-if __name__== '__main__':
-    print('Dunnhumby')
-    
-    filenames = ['C:/Users/KUTZKOV/Desktop/data/dunnhumby/', 'C:/Users/KUTZKOV/Desktop/data/dunnhumby_graphs/']
-    E, cust_map, prod_map = read_data(filenames[0] + 'merged.csv')
-    write_to_graphs(E, cust_map, prod_map, filenames[1])
