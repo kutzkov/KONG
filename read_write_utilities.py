@@ -243,3 +243,38 @@ def write_vectors_to_file(vectors, classes, filepath):
         f.write(str(classes[i]))
         f.write('\n')
     f.close()
+    
+    
+    
+    
+def WL_map_to_vector(feature_map, label_map):
+    nr_of_labels = len(label_map.keys())
+    vector = [0 for _ in range(nr_of_labels)]
+    
+    for label,cnt in feature_map.items():
+        label_idx = nr_of_labels
+        if label in label_map:
+            label_idx = label_map[label]
+            vector[label_idx] = cnt
+        else:
+            label_map[label] = label_idx
+            nr_of_labels += 1
+            vector.append(cnt)
+    return vector    
+    
+def write_WL_vectors_to_file(WL_feature_maps, k, classes, filepath):
+    label_path = {}
+    vectors = [[] for _ in range(len(classes))]
+    for i in range(k):
+        WL_feature_maps_i = WL_feature_maps[i]
+        cnt_graphs = 0
+        for fm in WL_feature_maps_i:
+            v_G_i = WL_map_to_vector(fm, label_path)
+            vectors[cnt_graphs].extend(v_G_i)
+            cnt_graphs += 1
+            #print(v)
+        maxlen = len(vectors[-1])
+        #print('WL maxlen', maxlen)
+        for i in range(len(vectors)):
+            vectors[i] += [0]*(maxlen-len(vectors[i]))
+    write_vectors_to_file(vectors, classes, filepath)    

@@ -40,6 +40,24 @@ def read_data(filename, classval):
     X = np.reshape(X, (cnt//2, -1))
     return X, np.array(y)
 
+def read_graphs(filename):
+    f = open(filename, 'r')
+    cnt = 0
+    X = []
+    y = []
+    for line in f:
+        if cnt % 2 == 0:
+            #print(len(line.split()))
+            X.append(line.split())
+        else:
+            y.append(int(line.strip()))
+#            print(line)
+#            print(int(line.strip()))
+#            print('\n')
+        cnt += 1
+    X = np.reshape(X, (cnt//2, -1))
+    return X, np.array(y)
+
 def normalize_data(X):
     for i in range(X.shape[0]):
         X[i, :] = normalize_vector(X[i, :])
