@@ -9,7 +9,7 @@ from os.path import isfile, join
 from binary_stream import BinaryStream
 
 """
-    The following Count-Sketch implementation is optimized to work with truly random numbers for vectors with nonnegative integers in a small range.
+  The following Count-Sketch implementation is optimized to work with truly random numbers for vectors with nonnegative integers in a small range. For details on Count-Sketch see http://www.mathcs.emory.edu/~cheung/Courses/584-StreamDB/Syllabus/papers/Frequency-count/FrequentStream.pdf
 """
 
 class CountSketch(object):
@@ -17,6 +17,9 @@ class CountSketch(object):
     def __init__(self, m, nr, rnd_path,  max_value = 200000):
         """ `m` is the size of the hash table, larger m implies smaller
         error.
+            `nr` is the number of different hash tables (sketches)
+            `rnd_path` is the path to a file with truly random numbers, used for the hash function
+            `max_value` is the maximum possible value of an item (needed for hash function implementation)
         """
         if not m:
             raise ValueError("Table size (m)  must be non-zero")
@@ -53,6 +56,7 @@ class CountSketch(object):
     
     
     def _hash(self, x, seed):
+        """ the hash value of x """
         if x > self.max_value or not isinstance(x, int) or x < 0:
             raise ValueError('Input number is not valid ', x)
         h = self.hashtables[seed][x] % self.m
@@ -63,22 +67,26 @@ class CountSketch(object):
         return self.signtables[seed][item]
 
     def clear(self):
+        """ delete all values from the sketches"""
         self.sketches = [[0 for _ in range(self.m)] for _ in range(self.nr)]
     
     def get(self, i):    
         return self.table[i]
         
     def update(self, item, val):
+        """add a new (item, val) pair to the sketch"""
         for k in range(self.nr):
             i = self._hash(item, k)
             self.sketches[k][i] += self._sign(item, k)*val
             
     
     def add_vector(self, x):
+        """add a vector to the sketch such that the items are its coordinates"""
         for i in range(len(x)):
             self.update(i, x[i])
         
     def get_table(self, i):    
+        """return the i-th sketch"""
         return self.sketches[i]
     
     
@@ -96,10 +104,11 @@ class CountSketch(object):
         print(self.number)    
             
     def inner_prod_estimation(self, other):
-        res = 0;
+        """"estimate the inner product of the current sketch and another sketched vector"""
+        res = 0
         for i in range(self.m):
             res += self.get(i)*other.get(i)
-        return res;
+        return res
     
     def get_norm(self):
         return math.sqrt(self.norm)

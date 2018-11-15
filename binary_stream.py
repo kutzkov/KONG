@@ -1,6 +1,8 @@
 from struct import *
 
 class BinaryStream:
+    """ Functions for unpacking/writing numeric values of different type from/into a binary file """
+    
     def __init__(self, base_stream):
         self.base_stream = base_stream
 

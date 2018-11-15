@@ -1,5 +1,10 @@
 import platform
 
+"""
+functions that read files in the MovieLens format https://grouplens.org/datasets/movielens/
+and create graphs as explained in the paper: https://arxiv.org/pdf/1805.10014.pdf
+"""
+
 #users: id, gender, age, occupation
 def read_users(filename):
     f = open(filename, 'r', encoding = "ISO-8859-1")
@@ -17,8 +22,11 @@ def read_users(filename):
         
    
     
-#movies: id, name, genre|genre|genre
+
 def read_items(filename):
+    """read movies in the fomat movie: id::name::genre|genre|...|genre
+       and store them in dictionary iff the movie has a single genre
+    """
     f = open(filename, 'r', encoding = "ISO-8859-1")
     items = {}
     for line in f:
@@ -33,6 +41,8 @@ def read_items(filename):
 
 #user, movie, rating, timestamp
 def read_data(filename):
+    """"read user ratings in the format user::movie::rating::timestamp
+        and create labeled graphs as described in the paper"""
     f = open(filename, 'r', encoding = "ISO-8859-1")
     E = {}
     cnt = 0

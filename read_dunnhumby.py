@@ -1,3 +1,9 @@
+"""
+Reading dunnhumby data from 
+https://www.dunnhumby.com/careers/engineering/sourcefiles and generating graphs as described in the KONG paper:
+https://arxiv.org/pdf/1805.10014.pdf
+"""
+
 import pandas as pd
 import numpy as np
 
@@ -9,6 +15,10 @@ def is_number(s):
         return False
 
 def read_data(filename):
+    """
+    Read  certain columns in order to create features for customers and products.
+    Create a single customer-product bipartite graph.
+    """
     df = pd.read_csv(filename)
     print(df.columns)
     customers = df.groupby(['CUST_CODE', 'CUST_PRICE_SENSITIVITY', 'CUST_LIFESTAGE']).groups.keys()
@@ -72,6 +82,10 @@ def read_data(filename):
 
 
 def write_to_graphs(E, customers, products, outpath):
+    '''
+    Using all collected edges between customers and products, generate small labeled graphs per customer 
+    using the coresponding customer and product features.
+    '''
     lifestage_idx = {}
     cust_idx = {}
     prod_idx = {}

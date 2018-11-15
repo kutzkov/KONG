@@ -1,3 +1,9 @@
+"""
+This is collection of functions that read a collection of graphs, generate neighborhood strings for each node,
+and then generate/sketch explicit feature maps for the polynomial kernel for the k-gram frequency vector.
+The reader is strongly advised to read the description the KONG paper: https://arxiv.org/pdf/1805.10014.pdf
+"""
+
 import read_write_utilities 
 import tensorsketch
 from count_sketch import CountSketch
@@ -7,6 +13,13 @@ import os
 import platform
 import copy
 
+
+def normalize_vector(v):
+    norm2 = np.linalg.norm(np.array(v))
+    if norm2 == 0:
+        norm2 = 1
+    return [x/norm2 for x in v]
+
 def normalize_vectors(vectors):
     norm_vectors = []
     for v in vectors:
@@ -15,6 +28,9 @@ def normalize_vectors(vectors):
 
 
 def order_nodes_by_label(Es, Vs):
+    """
+    a lexicographic ordering of the neighbor nodes, like in Weisfeiler-Lehman kernels
+    """
     for i in range(len(Es)):
         E = Es[i]
         V = Vs[i]
@@ -26,6 +42,9 @@ def order_nodes_by_label(Es, Vs):
             E[u] = [v for (_,v) in labels_u]
             
 def order_nodes_by_degree(Es):
+    """
+    ordering the neighborhood nodes by their degree
+    """
     for i in range(len(Es)):
         E = Es[i]
         for u in E:
@@ -38,13 +57,11 @@ def order_nodes_by_degree(Es):
             E[u] = [v for (_,v) in degrees_u]
             
 
-def normalize_vector(v):
-    norm2 = np.linalg.norm(np.array(v))
-    if norm2 == 0:
-        norm2 = 1
-    return [x/norm2 for x in v]
-
 def sketch_polynomial_feature_map(label_vector, cs, cosine):
+    """
+    cs is a count-sketch data structure
+    sketch a vector containing the label distribution 
+    """
     if cosine:
         norm2 = np.linalg.norm(np.array(label_vector))
         if norm2 == 0:
@@ -53,16 +70,25 @@ def sketch_polynomial_feature_map(label_vector, cs, cosine):
     cs.add_vector(label_vector)
 
 def get_frequency_distribution(V):
+    """
+    compute the label frequency
+    """
     Fr = {}
     for _,label in V.items():
          Fr[label] = Fr.setdefault(label, 0) + 1
     return Fr
 
 def add_to_frequency_distribution(Fr, label):
+    """
+    add new label to the frequency distribution
+    """
     Fr[label] = Fr.setdefault(label, 0) + 1
     return Fr
 
 def BFS(v, V, E):
+    """
+    breadth-first search neighborhood traversal
+    """
     N_v = []
     if v in E:
         N_v = E[v]
@@ -74,6 +100,9 @@ def BFS(v, V, E):
 
 #use this function for edge labeled data
 def BFS_edge_label(v, V, E):
+    """
+    breadt-first search where both nodes and edges are labeled 
+    """
     N_v = []
     if v in E:
         N_v = E[v]
@@ -85,6 +114,9 @@ def BFS_edge_label(v, V, E):
     return ','.join(str(e) for e in new_label)
 
 def generate_feature_maps(V, E, h):
+    """
+    compute the label frequency of a graph by doing breadth-first search up to depth h
+    """
     V_all = [copy.deepcopy(V) for _ in range(h+1)]
     V_all[0] = V
     feature_maps = [{} for _ in range(h+1)]
@@ -101,6 +133,10 @@ def generate_feature_maps(V, E, h):
 
 
 def feature_map_to_vector(feature_map, dirac_map):
+    """
+    convert a feature map to a vector. 
+    dirac_map stores all labels in all graphs
+    """
     label_vector = [0 for _ in range(len(dirac_map))]
     for label, val in feature_map.items():
         if label not in dirac_map:
@@ -113,6 +149,9 @@ def feature_map_to_vector(feature_map, dirac_map):
 
 
 def feature_map_to_k_gram_vector(feature_map, labels_map, k):
+    """
+    convert a feature map to a vector by generating the k-grams from each feature/string
+    """
     label_vector = [0 for _ in range(len(labels_map))]
     for label, val in feature_map.items():
         label_split = str.split(label, ',')
@@ -131,6 +170,9 @@ def feature_map_to_k_gram_vector(feature_map, labels_map, k):
     return label_vector
 
 def compute_label_distribution(Vs):
+    """
+    write the label distribution of all graphs to vectors, such v[i] = cnt denotes that the i-th label appears cnt times
+    """
     label_map = {}
     for i in range(len(Vs)):
         V = Vs[i]
@@ -146,7 +188,16 @@ def compute_label_distribution(Vs):
         
 
 def graph2map(Vs, Es, nr_graphs, h, k, table_size, random_files, nr_tables=1, max_p=2, dirac = False):
-    
+    """
+    for a collection of graphs generate feature maps by traversing local neighborhoods, generating strings and sketching
+    the k-gram ferquency distribution for 
+    h: the depth at which neighborhood strings are generated
+    k: the k in k-grams
+    table_size: the count-sketch hashtable size
+    random_files: needed for count-sketch initialization
+    nr_tables: count-sketch parameter
+    max_p: the maximum polynomial degree for the poly-kernel
+    """
     print('Count sketch data structures initialization')
     cs = CountSketch(table_size, nr_tables*max_p, random_files)
     cs_cosine = CountSketch(table_size, nr_tables*max_p, random_files)
