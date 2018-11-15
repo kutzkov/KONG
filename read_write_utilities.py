@@ -3,9 +3,11 @@ import os
 import numpy as np
 
 
-#Reading labeled general graphs in the standard provided on https://ls11-www.cs.tu-dortmund.de/staff/morris/graphkerneldatasets
-#We refer to the explanation https://ls11-www.cs.tu-dortmund.de/staff/morris/graphkerneldatasets#file_format for details
+
 def read_standard_graph(folderpath, filename):
+    """ Reading labeled general graphs in the standard provided on https://ls11-www.cs.tu-dortmund.de/staff/morris/graphkerneldatasets
+        We refer to the explanation https://ls11-www.cs.tu-dortmund.de/staff/morris/graphkerneldatasets#file_format for details
+    """
     
     filename_edges = folderpath + '/' + filename + '/' + filename + '_A.txt'
     filename_nodes_to_graph = folderpath + '/' + filename + '/' + filename + '_graph_indicator.txt'
@@ -23,6 +25,10 @@ def read_standard_graph(folderpath, filename):
     return Vs, Es, classes, set_labels
 
 def read_node_labels(filename_nodes_to_graph, filename_node_labels, nr_graphs):
+    """
+    Reading the nodel labels from a graph in the standard format given in 
+    https://ls11-www.cs.tu-dortmund.de/staff/morris/graphkerneldatasets#file_format
+    """
     with open(filename_nodes_to_graph) as f_nodes:
         nodes = f_nodes.read().splitlines()
         
@@ -49,6 +55,10 @@ def read_node_labels(filename_nodes_to_graph, filename_node_labels, nr_graphs):
         
 
 def read_edges(filename_edges, Vs, nodes_to_graph, node_labels, nr_graphs, sep=','):
+    """
+    Reading the nodel labels from a graph in the standard format given in 
+    https://ls11-www.cs.tu-dortmund.de/staff/morris/graphkerneldatasets#file_format
+    """
     Es = [{} for _ in range(nr_graphs)]
     f_edges = open(filename_edges, 'r')
     for line in f_edges: 
@@ -71,6 +81,8 @@ def read_edges(filename_edges, Vs, nodes_to_graph, node_labels, nr_graphs, sep='
 
 
 def read_graphs(folderpath, nr_graphs):
+    """reading user defined graphs, used only for tests
+    """
     classes = []
     Es = [{} for _ in range(nr_graphs)]
     Vs = [{} for _ in range(nr_graphs)]
@@ -119,6 +131,10 @@ def read_graphs(folderpath, nr_graphs):
         
 
 def read_my_format(folderpath, nr_graphs, ratio):
+    """read graphs in a user-defined format: 'node1,node2|label1::label2' (i-th line) and 'class_label' (i+1-th line)
+       graphs can be created from different sources 
+       we assume there are two classes and parameter ratio adjusts the ratio of examples from each class
+    """
     female_nr = int(ratio*nr_graphs)
     male_nr = int((1-ratio)*nr_graphs)
     cnt_m = 0
@@ -185,6 +201,9 @@ def read_my_format(folderpath, nr_graphs, ratio):
 
 
 def read_dh_format(folderpath, nr_graphs):
+    """read graphs in a user-defined format: 'node1,node2|label1::label2' (i-th line) and 'class_label' (i+1-th line)
+       graphs can be created from different sources 
+    """
     classes = []
     Es = [{} for _ in range(nr_graphs)]
     Vs = [{} for _ in range(nr_graphs)]
@@ -233,7 +252,9 @@ def read_dh_format(folderpath, nr_graphs):
         
 
 def write_vectors_to_file(vectors, classes, filepath):
-    #print(filepath)
+    """
+    writing feature vectors, one per graph, and the corresponding class to a file  
+    """
     f = open(filepath, 'w')
     for i in range(len(vectors)):
         v = vectors[i]
@@ -248,6 +269,10 @@ def write_vectors_to_file(vectors, classes, filepath):
     
     
 def WL_map_to_vector(feature_map, label_map):
+    """
+    features have been generated and stored in a feature map recording the number of occurrences or each feature in the graph
+    using label_map we convert these features to vector coordinates
+    """
     nr_of_labels = len(label_map.keys())
     vector = [0 for _ in range(nr_of_labels)]
     
@@ -263,6 +288,9 @@ def WL_map_to_vector(feature_map, label_map):
     return vector    
     
 def write_WL_vectors_to_file(WL_feature_maps, k, classes, filepath):
+    """
+    converting the feature maps of individual vectors to file and writing them to a file
+    """
     label_path = {}
     vectors = [[] for _ in range(len(classes))]
     for i in range(k):
@@ -272,9 +300,7 @@ def write_WL_vectors_to_file(WL_feature_maps, k, classes, filepath):
             v_G_i = WL_map_to_vector(fm, label_path)
             vectors[cnt_graphs].extend(v_G_i)
             cnt_graphs += 1
-            #print(v)
         maxlen = len(vectors[-1])
-        #print('WL maxlen', maxlen)
         for i in range(len(vectors)):
             vectors[i] += [0]*(maxlen-len(vectors[i]))
     write_vectors_to_file(vectors, classes, filepath)    
