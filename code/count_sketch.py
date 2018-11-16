@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+
+"""
+  The following Count-Sketch implementation is optimized to work with truly random numbers for vectors with nonnegative integers in a small range. For details on Count-Sketch see http://www.mathcs.emory.edu/~cheung/Courses/584-StreamDB/Syllabus/papers/Frequency-count/FrequentStream.pdf
+  
+Please contact Konstantin Kutzkov (kutzkov@gmail.com) if you have any questions.  
+"""
+
 import math
 import struct
 import time
@@ -8,9 +16,6 @@ from os import listdir
 from os.path import isfile, join
 from binary_stream import BinaryStream
 
-"""
-  The following Count-Sketch implementation is optimized to work with truly random numbers for vectors with nonnegative integers in a small range. For details on Count-Sketch see http://www.mathcs.emory.edu/~cheung/Courses/584-StreamDB/Syllabus/papers/Frequency-count/FrequentStream.pdf
-"""
 
 class CountSketch(object):
     

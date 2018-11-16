@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+
 """
 Reading dunnhumby data from 
 https://www.dunnhumby.com/careers/engineering/sourcefiles and generating graphs as described in the KONG paper:
 https://arxiv.org/pdf/1805.10014.pdf
+
+Please contact Konstantin Kutzkov (kutzkov@gmail.com) if you have any questions.
 """
 
 import pandas as pd

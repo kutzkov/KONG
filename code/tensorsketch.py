@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+
+"""
+An implementation of the Tensor-Sketch algorithm for computing concise explicit feature maps for the polynomial kernel: 
+http://www.itu.dk/people/pagh/papers/tensorsketch.pdf
+
+Please contact Konstantin Kutzkov (kutzkov@gmail.com) if you have any questions.
+"""
+
 from count_sketch import CountSketch
 import numpy as np
 import math

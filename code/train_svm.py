@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+
+"""
+The usual train-test split mumbo-jumbo
+
+Please contact Konstantin Kutzkov (kutzkov@gmail.com) if you have any questions.
+"""
+
 # The usual train-test split mumbo-jumbo
 #from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split

@@ -1,9 +1,14 @@
-import platform
+#!/usr/bin/env python
 
 """
 functions that read files in the MovieLens format https://grouplens.org/datasets/movielens/
 and create graphs as explained in the paper: https://arxiv.org/pdf/1805.10014.pdf
+
+Please contact Konstantin Kutzkov (kutzkov@gmail.com) if you have any questions.
 """
+
+import platform
+
 
 #users: id, gender, age, occupation
 def read_users(filename):

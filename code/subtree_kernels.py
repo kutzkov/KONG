@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+
+"""
+This is collection of functions that read a collection of graphs, generate the neighborhood label dsitribution for each node,
+and then generate/sketch explicit feature maps for the polynomial kernel for the label frequency vector.
+The reader is strongly advised to read a detailed description of the algorithm the KONG paper: https://arxiv.org/pdf/1805.10014.pdf
+
+Please contact Konstantin Kutzkov (kutzkov@gmail.com) if you have any questions.
+"""
+
 import numpy as np
 import math
 import matplotlib.pylab as plt
@@ -10,7 +20,12 @@ import tensorsketch
 from count_sketch import CountSketch
 
 
+
 def get_label_tensor(label, p):
+    """
+    generate a p-level tensor from a label string
+    used for explicit feature map of the polynomial kernel
+    """
     i = 0
     tensor_new = {'':1}
     label_split = str.split(label, ',')
@@ -34,6 +49,9 @@ def get_frequency_distribution(V):
     return Fr
 
 def get_frequency_from_string(label):
+    """
+    compute the character frequency vector in a string
+    """
     Fr = {}
     for c in label:
         Fr[c] = Fr.setdefault(c, 0) + 1
@@ -53,23 +71,25 @@ def add_frequency_vector(feature_map, Fr):
 
 
 def BFS(v, V, E):
+    """
+    breadth-first search neighborhood traversal
+    """
     N_v = []
     if v in E:
         N_v = E[v]
     new_label = []#V[v]
     for u in N_v:
         u_label = V[u]
-        #new_label += u_label
-        #print('u label', u_label)
         new_label.append(u_label)
     new_label = sorted(new_label)
     new_label.insert(0, V[v])
     #print('label', new_label)
     return ','.join(str(e) for e in new_label)#''.join(sorted(new_label))
-    #print('new label', new_label)
-    #return ''.join(sorted(new_label))  
 
 def BFS_WL(v, V, E): 
+    """
+    WL neighborhood traversal
+    """
     N_v = []
     if v in E:
         N_v = E[v]
@@ -82,6 +102,9 @@ def BFS_WL(v, V, E):
     return ''.join(str(e) for e in new_label)#''.join(sorted(new_label))
 
 def inner_product(fr1, fr2):
+    """
+    inner product between sparse vectors stored as dictionaries
+    """
     ip = 0
     for k in fr1:
         if k in fr2:
@@ -95,6 +118,9 @@ def cosine(fr1, fr2):
     return inner_product(fr1, fr2)/(norm1*norm2)
         
 def WL_label(v, V, E):
+    """
+    the standard WL labeling
+    """
     N_v = E[v]
     label = []
     for u in N_v:
@@ -103,6 +129,9 @@ def WL_label(v, V, E):
 
 
 def generate_feature_maps_relabel(V, E, V_labels, k, h):
+    """
+    relabel nodes using WL labeling of depth k and and then compute the label distribution in the h-hop neighborhood
+    """
     V_all = [{} for _ in range(h+1)]
     cnt_unique_labels = len(V_labels.keys())
     relabel_feature_maps = [{} for _ in range(h+1)]
@@ -118,12 +147,9 @@ def generate_feature_maps_relabel(V, E, V_labels, k, h):
                 V_all[i+1][v] = cnt_unique_labels
                 V_labels[label_v] = cnt_unique_labels
                 cnt_unique_labels += 1
-            #V_all[i+1][v] = label_v
-            #print('adding', label_v, ' with new label ', V_labels[label_v])
             add_to_frequency_distribution(relabel_feature_maps[i+1], str(V_labels[label_v]))
             #print(relabel_feature_maps)
     for i in range(k, h):
-        #print('i = ', i)
         for v in V_all[i]:
             label_v = BFS(v, V_all[i], E)
             V_all[i+1][v] = label_v
@@ -131,6 +157,9 @@ def generate_feature_maps_relabel(V, E, V_labels, k, h):
     return relabel_feature_maps
         
 def generate_feature_maps(V, E, h):
+    """
+    generate feature maps for a labeled graph using BFS
+    """
     V_all = [{} for _ in range(h+1)]
     V_all[0] = V
     #print(V)
@@ -145,9 +174,11 @@ def generate_feature_maps(V, E, h):
     return feature_maps
 
 def generate_WL_feature_maps(V, E, V_labels, h):
+    """
+    generate feature maps for a labeled graph using WL
+    """
     V_all = [{} for _ in range(h+1)]
     V_all[0] = V
-    #V_labels = {}
     cnt_unique_labels = len(V_labels.keys())
     WL_feature_maps = [{} for _ in range(h+1)]
     WL_feature_maps[0] = get_frequency_distribution(V)
@@ -165,6 +196,9 @@ def generate_WL_feature_maps(V, E, V_labels, h):
 
 
 def feature_map_to_vector(feature_map, labels_map):
+    """
+    convert a feature map, stored in a dictionary, to a vector representation 
+    """
     label_vector = [0,0]
     for label, val in feature_map.items():
         label_split = str.split(label, ',')
@@ -177,7 +211,7 @@ def feature_map_to_vector(feature_map, labels_map):
             label_vector[label_idx] += val 
     return label_vector
 
-def sketch_polynomial_feature_map(label_vector, cs, cosine):# p, table_size, nr_tables, hash_function_file, sign_function_file, max_val):
+def sketch_polynomial_feature_map(label_vector, cs, cosine):
     if cosine:
         norm2 = np.linalg.norm(np.array(label_vector))
         label_vector = [x/norm2 for x in label_vector]
@@ -185,10 +219,12 @@ def sketch_polynomial_feature_map(label_vector, cs, cosine):# p, table_size, nr_
         
     
 def compute_polynomial_feature_map(feature_map, p):
+    """
+    compute an explicit represenation of the polynomial feature map
+    """
     graph_map = {}
     cnt_total = 0
     for label,cnt in feature_map.items():
-        #print(label, cnt)
         fm_p = get_label_tensor(label, p)
         #print('fm_p', fm_p)
         for pattern,cnt_p in fm_p.items():
@@ -201,6 +237,9 @@ def compute_polynomial_feature_map(feature_map, p):
                 
  
 def get_vector_from_map(graph_map, index_map, cosine_sim):
+    """
+    convert to a vector the explicit represenation of the poly/cosine kernel
+    """
     norm = 0
     for label,cnt in graph_map.items():
         norm += cnt*cnt
@@ -219,6 +258,9 @@ def get_vector_from_map(graph_map, index_map, cosine_sim):
     return v
 
 def graph2WLmap(Vs, Es, nr_graphs, set_labels, h):
+    """
+    an explicit feature map for WL kernel
+    """
     WL_feature_maps = [[] for _ in range(h+1)]
     V_labels = {}
     cnt_labels = 0
@@ -236,10 +278,12 @@ def graph2WLmap(Vs, Es, nr_graphs, set_labels, h):
     return WL_feature_maps
  
 def graph2map(Vs, Es, nr_graphs, set_labels, h, relabel, cs, cs_cosine, nr_tables, max_p = 4):
+    """
+    sketch the explicit feature map of the poly/cosine kernel for a colection of graphs and represent them as vectors
+    """
     index_maps = [{} for _ in range(h*max_p)]
     vectors = [[] for _ in range(h*max_p)]
     vectors_cosine = [[] for _ in range(h*max_p)]
-    #vectors_sketched = [[] for _ in range(h*max_p)]
     V_labels = {}
     cnt_labels = 0
     labels_map = {}
@@ -255,7 +299,6 @@ def graph2map(Vs, Es, nr_graphs, set_labels, h, relabel, cs, cs_cosine, nr_table
         feature_maps = []
         if relabel:
             feature_maps = generate_feature_maps_relabel(V, E, V_labels, 1, h)
-            #max_p = 2
         else:
             feature_maps = generate_feature_maps(V, E, h)
         #print(feature_maps)
@@ -267,7 +310,6 @@ def graph2map(Vs, Es, nr_graphs, set_labels, h, relabel, cs, cs_cosine, nr_table
             sketch_polynomial_feature_map(label_vector, cs_cosine, True)
             #sketch_polynomial_feature_map(feature_maps[k], labels_map, cs, max_p, nr_tables)
             for p in range(1, max_p+1):
-                #all_feature_maps[(k-1)*max_p + p-1].append(feature_maps[k])
                 if p > 1 and len(label_vector) > 100:
                     vectors[(k-1)*max_p + p-1].append(tensorsketch.compute_tensorsketch_from_cs(cs, p, nr_tables))
                     #vectors[(k-1)*max_p + p-1].append([0])
@@ -284,6 +326,9 @@ def graph2map(Vs, Es, nr_graphs, set_labels, h, relabel, cs, cs_cosine, nr_table
     return vectors, vectors_cosine
        
 def feature_map_per_graph(file_dir, filename, nr, h, k, p, read_edges, cosine_sim = False):
+    """
+    read a collection of graphs from a folder and compute the explicit feature map using the above methods 
+    """
     filename_base = os.path.join(file_dir, filename)
     print(filename)
     index_map = {}
@@ -302,7 +347,6 @@ def feature_map_per_graph(file_dir, filename, nr, h, k, p, read_edges, cosine_si
         feature_maps = generate_feature_maps(V, E, h)
         #print('feature map k',feature_maps[k])
         all_feature_maps.append(feature_maps[k])
-        #for k in range(h-1,h):
         graph_map, _ = compute_polynomial_feature_map(feature_maps[k], p)
         #print('graph map', graph_map)
         graph_vector = get_vector_from_map(graph_map, index_map, C, cosine_sim)
@@ -317,20 +361,11 @@ def feature_map_per_graph(file_dir, filename, nr, h, k, p, read_edges, cosine_si
         vectors[i] += [0]*(maxlen-len(vectors[i]))
     return vectors, classes, all_feature_maps
         
-            
-#def write_vectors_to_file(vectors, classes, filepath):
-#    #print(filepath)
-#    f = open(filepath, 'w')
-#    for i in range(len(vectors)):
-#        v = vectors[i]
-#        for item in v:
-#            f.write(str(item) + ' ')
-#        f.write('\n')
-#        f.write(classes[i])
-#        f.write('\n')
-#    f.close()
     
 def WL_map_to_vector(feature_map, label_map):
+    """
+    represent WL feature map as a vector
+    """
     nr_of_labels = len(label_map.keys())
     vector = [0 for _ in range(nr_of_labels)]
     
@@ -344,21 +379,4 @@ def WL_map_to_vector(feature_map, label_map):
             nr_of_labels += 1
             vector.append(cnt)
     return vector
-
-def write_WL_vectors_to_file(WL_feature_maps, k, classes, filepath):
-    label_path = {}
-    vectors = [[] for _ in range(len(classes))]
-    for i in range(k):
-        WL_feature_maps_i = WL_feature_maps[i]
-        cnt_graphs = 0
-        for fm in WL_feature_maps_i:
-            v_G_i = WL_map_to_vector(fm, label_path)
-            vectors[cnt_graphs].extend(v_G_i)
-            cnt_graphs += 1
-            #print(v)
-        maxlen = len(vectors[-1])
-        #print('WL maxlen', maxlen)
-        for i in range(len(vectors)):
-            vectors[i] += [0]*(maxlen-len(vectors[i]))
-    read_write_utilities.write_vectors_to_file(vectors, classes, filepath)
     

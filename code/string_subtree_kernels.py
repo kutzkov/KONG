@@ -1,7 +1,11 @@
+#!/usr/bin/env python
+
 """
 This is collection of functions that read a collection of graphs, generate neighborhood strings for each node,
 and then generate/sketch explicit feature maps for the polynomial kernel for the k-gram frequency vector.
 The reader is strongly advised to read the description the KONG paper: https://arxiv.org/pdf/1805.10014.pdf
+
+Please contact Konstantin Kutzkov (kutzkov@gmail.com) if you have any questions.
 """
 
 import read_write_utilities 

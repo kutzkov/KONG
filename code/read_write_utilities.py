@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+
+"""
+Read/write functions for graph data.
+Please contact Konstantin Kutzkov (kutzkov@gmail.com) if you have any questions.
+"""
+
 import pickle
 import os
 import numpy as np

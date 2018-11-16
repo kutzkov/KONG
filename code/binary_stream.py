@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from struct import *
 
 class BinaryStream:
